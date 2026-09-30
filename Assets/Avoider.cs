@@ -34,19 +34,56 @@ using UnityEngine.AI;
 public class Avoider : MonoBehaviour
 {
     public GameObject avoidee;
+    public Transform avoider;
     public NavMeshAgent navMeshAgent;
+
     [SerializeField]
-    private float _range = 10f;
+    private float _radius = 1f;
+
+    private bool canSee;
+
+    private 
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        avoider = this.gameObject.GetComponent<Transform>();
+        StartCoroutine(Avoid());
+
     }
 
     // Update is called once per frame
     void Update()
     {
         
+    }
+
+    IEnumerator Avoid()
+    {
+        var sampler = poissonDiskSampling(avoider.position.x, avoider.position.z, _radius);
+        if (canSee)
+        {
+            // is there a place to run? (is candidate list empty?)
+            // candidate list would be all points in the sampler that are out of player line of sight
+
+        }
+
+        // return a second if not seen
+        yield return new WaitForSeconds(0.5f);
+    }
+
+    private PoissonDiscSampler poissonDiskSampling(float size_x, float size_y, float radius)
+    {
+        var sampler = new PoissonDiscSampler(size_x, size_y, radius);
+        List<Vector2> candidates = new List<Vector2>();
+        foreach(var point in sampler.Samples())
+        {
+            // add raycast to see if a point is visible (in avoidee line of sight)
+            // if yes then ignore
+            // if no then add to candidate list
+
+        }
+
+        return sampler;
     }
 }
