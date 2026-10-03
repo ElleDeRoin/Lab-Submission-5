@@ -599,9 +599,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   avoidee: {fileID: 1444040944}
-  avoider: {fileID: 0}
-  navMeshAgent: {fileID: 1573742497}
+  avoider: {fileID: 1573742501}
   _radius: 1
+  _range: 10
 --- !u!195 &1573742497
 NavMeshAgent:
   m_ObjectHideFlags: 0
