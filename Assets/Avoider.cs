@@ -35,55 +35,105 @@ public class Avoider : MonoBehaviour
 {
     public GameObject avoidee;
     public Transform avoider;
-    public NavMeshAgent navMeshAgent;
 
+    private float size_x;
+    private float size_y;
+
+    // The amount of space between sample points in the PoissonDiscSampler
     [SerializeField]
     private float _radius = 1f;
+    // The range of the PoissonDiscSampler
+    [SerializeField]
+    private float _range = 15f;
 
     private bool canSee;
 
-    private 
+    private void OnEnable()
+    {
+        avoider = this.gameObject.GetComponent<Transform>();
+    }
 
     // Start is called before the first frame update
     void Start()
     {
-        avoider = this.gameObject.GetComponent<Transform>();
-        StartCoroutine(Avoid());
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        size_x = _range;
+        size_y = _range;
+        StartCoroutine(Avoid()); 
     }
 
     IEnumerator Avoid()
     {
-        var sampler = poissonDiskSampling(avoider.position.x, avoider.position.z, _radius);
-        if (canSee)
+        // Do this forever
+        while (true)
         {
-            // is there a place to run? (is candidate list empty?)
-            // candidate list would be all points in the sampler that are out of player line of sight
+            
+            if(!isVisible(avoider.position))
+            {
+                // check again in 0.5 seconds if not seen
+                Debug.Log("avoidee cannot see me");
+                CreatePoissonDisc();
+                yield return new WaitForSeconds(0.5f);
+                continue;
+            }
+            else
+            {
+                Debug.Log("avoidee can see me");
+                CreatePoissonDisc();
 
+                //if (candidates.Count > 0)
+                //{
+                //    // is there a place to run? (is candidate list empty?)
+                //    // candidate list would be all points in the sampler that are out of player line of sight
+
+                //}
+            }
+
+            yield return new WaitForSeconds(0.5f);
         }
-
-        // return a second if not seen
-        yield return new WaitForSeconds(0.5f);
     }
 
-    private PoissonDiscSampler poissonDiskSampling(float size_x, float size_y, float radius)
+    // creates and visualizes PoissonDiscSampler regardless of whether avoidee can see the avoider or not
+    private void CreatePoissonDisc()
     {
-        var sampler = new PoissonDiscSampler(size_x, size_y, radius);
-        List<Vector2> candidates = new List<Vector2>();
-        foreach(var point in sampler.Samples())
+        var sampler = new PoissonDiscSampler(size_x, size_y, _radius);
+        List<Vector3> candidates = new List<Vector3>();
+        foreach (var point in sampler.Samples())
         {
             // add raycast to see if a point is visible (in avoidee line of sight)
             // if yes then ignore
             // if no then add to candidate list
+            Vector3 samplePosition = new Vector3(transform.position.x + point.x - size_x / 2f, transform.position.y, transform.position.z + point.y - size_y / 2f);
 
+            if (!isVisible(samplePosition))
+            {
+                candidates.Add(samplePosition);
+                Debug.DrawLine(avoider.transform.position, samplePosition, Color.blue, 0.5f);
+            }
+            else
+            {
+                // turn line red if visible
+                Debug.DrawLine(avoider.transform.position, samplePosition, Color.red, 0.5f);
+            }
         }
+    }
 
-        return sampler;
+    // checks if a point is visible to the avoidee
+    private bool isVisible(Vector3 point)
+    {
+        Vector3 direction = (avoidee.transform.position - point);
+        float distance = direction.magnitude;
+        Vector3 normalizedDirection = direction.normalized;
+        if (Physics.Raycast(point, normalizedDirection, out RaycastHit hit, distance))
+        {
+            if(hit.collider.gameObject == avoidee)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
