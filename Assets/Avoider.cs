@@ -46,7 +46,6 @@ public class Avoider : MonoBehaviour
     [SerializeField]
     private float _range = 15f;
 
-    private bool canSee;
 
     private void OnEnable()
     {
@@ -78,22 +77,22 @@ public class Avoider : MonoBehaviour
             else
             {
                 Debug.Log("avoidee can see me");
-                CreatePoissonDisc();
+                List<Vector3> candidates = CreatePoissonDisc();
 
                 //if (candidates.Count > 0)
                 //{
                 //    // is there a place to run? (is candidate list empty?)
                 //    // candidate list would be all points in the sampler that are out of player line of sight
 
+                //    // don't pause for seconds if avoider can be seen
+                //    yield return null;
                 //}
             }
-
-            yield return new WaitForSeconds(0.5f);
         }
     }
 
     // creates and visualizes PoissonDiscSampler regardless of whether avoidee can see the avoider or not
-    private void CreatePoissonDisc()
+    private List<Vector3> CreatePoissonDisc()
     {
         var sampler = new PoissonDiscSampler(size_x, size_y, _radius);
         List<Vector3> candidates = new List<Vector3>();
@@ -115,6 +114,7 @@ public class Avoider : MonoBehaviour
                 Debug.DrawLine(avoider.transform.position, samplePosition, Color.red, 0.5f);
             }
         }
+        return candidates;
     }
 
     // checks if a point is visible to the avoidee
